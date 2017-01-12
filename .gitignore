@@ -87,3 +87,6 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+mhsCalculator/convert_text_to_bin
+mhsCalculator/mhsCalculator_berge
