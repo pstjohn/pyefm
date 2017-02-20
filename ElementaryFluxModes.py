@@ -15,7 +15,6 @@ try:
 except ImportError:
     pandas = False
 
-from cobra.core import ArrayBasedModel
 from .utils import make_temp_directory, run_process
 
 efm_lib_dir = os.path.dirname(os.path.abspath(__file__)) + '/efmtool'
@@ -28,12 +27,7 @@ def create_model_files(cobra_model, temp_dir, deepcopy_model=True):
 
     """
 
-    try:
-        stoich_mat = cobra_model.S.toarray()
-    except AttributeError:
-        cobra_model = ArrayBasedModel(
-            cobra_model, deepcopy_model=deepcopy_model)
-        stoich_mat = cobra_model.S.toarray()
+    stoich_mat = cobra_model.S
 
     # Stoichiometric Matrix
     np.savetxt(temp_dir + '/stoich.txt', stoich_mat, delimiter='\t')
