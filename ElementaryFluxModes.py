@@ -6,6 +6,7 @@ with bit pattern trees. Bioinformatics 24: 2229-2235.
 """
 
 import os
+from cobra.util import create_stoichiometric_matrix
 
 import numpy as np
 
@@ -27,7 +28,7 @@ def create_model_files(cobra_model, temp_dir, deepcopy_model=True):
 
     """
 
-    stoich_mat = cobra_model.S
+    stoich_mat = create_stoichiometric_matrix(cobra_model)
 
     # Stoichiometric Matrix
     np.savetxt(temp_dir + '/stoich.txt', stoich_mat, delimiter='\t')

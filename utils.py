@@ -5,8 +5,6 @@ import subprocess
 import os
 import sys
 
-from warnings import warn
-
 
 @contextlib.contextmanager
 def make_temp_directory(prefix=None):
@@ -16,8 +14,6 @@ def make_temp_directory(prefix=None):
     temp_dir = tempfile.mkdtemp(prefix=prefix + '_tmp', dir='.')
     try:
         yield temp_dir
-    except Exception as e:
-        warn(str(e))
     finally:
         shutil.rmtree(temp_dir)
 
