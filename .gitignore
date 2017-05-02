@@ -90,3 +90,5 @@ ENV/
 
 mhsCalculator/convert_text_to_bin
 mhsCalculator/mhsCalculator_berge
+
+*.sw[op]
