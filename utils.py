@@ -38,6 +38,11 @@ def run_process(process, verbose=True):
             sys.stdout.write(line.decode("utf-8"))
             sys.stdout.flush()
         process.stdout.close()
+
+        for line in iter(process.stderr.readline, b''):
+            sys.stderr.write(line.decode("utf-8"))
+            sys.stderr.flush()
+        process.stderr.close()
     process.wait()
 
 
