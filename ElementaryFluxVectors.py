@@ -3,7 +3,7 @@ import numpy as np
 import cobra
 
 from pyefm.ElementaryFluxModes import EFMToolWrapper
-
+from tqdm import tqdm
 
 class EFVWrapper(EFMToolWrapper):
 
@@ -71,6 +71,10 @@ class EFVWrapper(EFMToolWrapper):
                 (-1, self.nt + self.nr + 1)).T
             out_arr = np.asarray(out_arr, dtype=np.float64).T
 
+        # Sort by the absolute value of the stoichiometry
+        sort_inds= np.abs(out_arr[:, :self.nr]).sum(1).argsort()
+        out_arr = out_arr[sort_inds]
+
         unbounded = out_arr[np.isclose(out_arr[:,-1], 0.)]
         bounded = out_arr[~np.isclose(out_arr[:,-1], 0.)]
 
@@ -99,3 +103,32 @@ def calculate_elementary_vectors(cobra_model, opts=None, verbose=True):
     return EFVWrapper(cobra_model, opts, verbose)()
     
 
+def get_support_minimal(efvs):
+    """Return only those elementary flux vectors whose support is not a proper
+    superset of another EFV"""
+    
+    bool_df = pd.DataFrame(np.isclose(efvs, 0),
+                           columns=efvs.columns, index=efvs.index)
+    set_df = bool_df.apply(lambda x: set(x.index[~x]), 1)
+    set_df = set_df[set_df != set()]  # Drop the empty set EFV
+    set_dict = set_df.to_dict()    
+    
+    is_support_minimal = _get_support_minimal_list(set_dict)
+
+    return efvs.loc[is_support_minimal]
+
+
+def _get_support_minimal_list(set_dict):
+
+    all_keys = set(set_dict.keys())
+    is_support_minimal = []
+
+    for this_key, val in tqdm(set_dict.items()):
+
+        for key in all_keys.difference(set([this_key])):
+            if val.issuperset(set_dict[key]):
+                break
+        else:
+            is_support_minimal.append(this_key)
+
+    return is_support_minimal
