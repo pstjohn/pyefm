@@ -7,7 +7,16 @@ from tqdm import tqdm
 
 class EFVWrapper(EFMToolWrapper):
 
-    def create_matrices(self):
+    def create_matrices(self, extra_g=None, extra_h=None):
+        """ Initialize the augmented stoichiometric matrix.
+
+        extra_g: (n x nr) array
+            Extra entries in the constraint matrix. postive values for lower
+            bounds, negative values for upper bounds
+        extra_h: (n) array
+            Corresponding bounds for the extra entries matrix
+
+        """
 
         # Create stoichiometric matrix, get key dimensions
         N = cobra.util.create_stoichiometric_matrix(self.model)
@@ -21,9 +30,19 @@ class EFVWrapper(EFMToolWrapper):
         h_full = np.array([(r.lower_bound, -r.upper_bound)
                            for r in self.model.reactions]).T.flatten()
 
-        inhomogeneous = ~((h_full <= -1000) | np.isclose(h_full, 0))
-        h = h_full[inhomogeneous]
-        G = g_full[inhomogeneous]
+        # inhomogeneous = ~((h_full <= -1000) | np.isclose(h_full, 0))
+        # h = h_full[inhomogeneous]
+        # G = g_full[inhomogeneous]
+
+        if extra_g is not None:
+            assert extra_g.shape[1] == nr
+            assert extra_g.shape[0] == len(extra_h)
+
+            g_full = np.vstack([g_full, extra_g])
+            h_full = np.hstack([h_full, extra_h])
+
+        G = g_full
+        h = h_full
 
         self.nt = nt = len(h)
 
@@ -33,8 +52,6 @@ class EFVWrapper(EFMToolWrapper):
         ])
 
     def create_model_files(self, temp_dir):
-        
-        self.create_matrices()
 
         # Stoichiometric Matrix
         np.savetxt(temp_dir + '/stoich.txt', self.D, delimiter='\t')
@@ -42,7 +59,7 @@ class EFVWrapper(EFMToolWrapper):
         # Reaction reversibilities
         np.savetxt(temp_dir + '/revs.txt',
                    np.hstack([
-                    np.array([r.reversibility for r in self.model.reactions]),
+                    np.array([r.lower_bound < 0 for r in self.model.reactions]),
                     np.zeros((self.nt + 1))]),
                    delimiter='\t', fmt='%d', newline='\t')
 
@@ -96,11 +113,25 @@ class EFVWrapper(EFMToolWrapper):
         return unbounded_df.append(bounded_df)
  
 
-def calculate_elementary_vectors(cobra_model, opts=None, verbose=True):
+def calculate_elementary_vectors(cobra_model, opts=None, verbose=True,
+                                 extra_g=None, extra_h=None):
     """Calculate elementary flux vectors, which capture arbitrary linear
     constraints. Approach as detailed in S. Klamt et al., PLoS Comput Biol. 13,
-    e1005409–22 (2017)."""
-    return EFVWrapper(cobra_model, opts, verbose)()
+    e1005409–22 (2017).
+
+    Augmented constraints as a hacky workaround for implementing more
+    complicated constraints without using optlang.
+    
+    extra_g: (n x nr) array
+        Extra entries in the constraint matrix. postive values for lower
+        bounds, negative values for upper bounds
+    extra_h: (n) array
+        Corresponding bounds for the extra entries matrix
+
+    """
+    efv_wrap =  EFVWrapper(cobra_model, opts, verbose)
+    efv_wrap.create_matrices(extra_g=extra_g, extra_h=extra_h)
+    return efv_wrap()
     
 
 def get_support_minimal(efvs):
