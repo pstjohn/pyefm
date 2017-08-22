@@ -3511,13 +3511,13 @@ fi
 
 done
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GRBloadenv in -lgurobi55" >&5
-$as_echo_n "checking for GRBloadenv in -lgurobi55... " >&6; }
-if ${ac_cv_lib_gurobi55_GRBloadenv+:} false; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GRBloadenv in -lgurobi75" >&5
+$as_echo_n "checking for GRBloadenv in -lgurobi75... " >&6; }
+if ${ac_cv_lib_gurobi75_GRBloadenv+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_check_lib_save_LIBS=$LIBS
-LIBS="-lgurobi55 -lpthread -lm $LIBS"
+LIBS="-lgurobi75 -lpthread -lm $LIBS"
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -3537,17 +3537,17 @@ return GRBloadenv ();
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_gurobi55_GRBloadenv=yes
+  ac_cv_lib_gurobi75_GRBloadenv=yes
 else
-  ac_cv_lib_gurobi55_GRBloadenv=no
+  ac_cv_lib_gurobi75_GRBloadenv=no
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 LIBS=$ac_check_lib_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gurobi55_GRBloadenv" >&5
-$as_echo "$ac_cv_lib_gurobi55_GRBloadenv" >&6; }
-if test "x$ac_cv_lib_gurobi55_GRBloadenv" = xyes; then :
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_gurobi75_GRBloadenv" >&5
+$as_echo "$ac_cv_lib_gurobi75_GRBloadenv" >&6; }
+if test "x$ac_cv_lib_gurobi75_GRBloadenv" = xyes; then :
   LIBGUROBI=true
 else
   LIBGUROBI=false
@@ -3617,8 +3617,8 @@ fi
 if test "$LIBGUROBI" == false
 then
         BUILD_GUROBI_EXEC=no
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: GUROBI library 'libgurobi55' is missing!" >&5
-$as_echo "$as_me: WARNING: GUROBI library 'libgurobi55' is missing!" >&2;};
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: GUROBI library 'libgurobi75' is missing!" >&5
+$as_echo "$as_me: WARNING: GUROBI library 'libgurobi75' is missing!" >&2;};
 fi
 ###############################################################################
 

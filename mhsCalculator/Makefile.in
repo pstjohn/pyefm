@@ -13,7 +13,7 @@ CC_OPTS = -O3 -Wall @CFLAGS@
 LD_OPTS = @LDFLAGS@
 
 
-GURBOI_LIB = -lgurobi55 -lm -lpthread
+GURBOI_LIB = -lgurobi75 -lm -lpthread
 GUROBI_LOCAL_OBJ = mhsCalculator_linprog_gurobi.o prepro.o read_files.o printing.o qsort_routines.o
 
 GLPK_LIB   = -lglpk -lm

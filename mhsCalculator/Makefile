@@ -6,14 +6,14 @@
 ################################################################################
 
 CC         = gcc
-TARGET     = mhsCalculator_linprog_glpk
+TARGET     = mhsCalculator_linprog_gurobi mhsCalculator_linprog_glpk
 
-# CC_OPTS = -g -O0 -I/home/pstjohn/include
-CC_OPTS = -O3 -Wall -I/home/pstjohn/include
-LD_OPTS = 
+# CC_OPTS = -g -O0 -I/Library/gurobi751/mac64/include
+CC_OPTS = -O3 -Wall -I/Library/gurobi751/mac64/include
+LD_OPTS = -L/Library/gurobi751/mac64/lib
 
 
-GURBOI_LIB = -lgurobi55 -lm -lpthread
+GURBOI_LIB = -lgurobi75 -lm -lpthread
 GUROBI_LOCAL_OBJ = mhsCalculator_linprog_gurobi.o prepro.o read_files.o printing.o qsort_routines.o
 
 GLPK_LIB   = -lglpk -lm
