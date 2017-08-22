@@ -15,7 +15,7 @@ try:
 except ImportError:
     pandas = False
 
-from cobra.core import ArrayBasedModel
+from cobra.core.arraybasedmodel import ArrayBasedModel
 from .utils import make_temp_directory, run_process
 
 efm_lib_dir = os.path.dirname(os.path.abspath(__file__)) + '/efmtool'
