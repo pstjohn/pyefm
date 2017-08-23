@@ -29,7 +29,8 @@ def create_model_files(cobra_model, temp_dir, deepcopy_model=True):
     """
 
     try:
-        stoich_mat = cobra_model.S.toarray()
+        import cobra
+        stoich_mat = cobra.util.create_stoichiometric_matrix(cobra_model)
     except AttributeError:
         cobra_model = ArrayBasedModel(
             cobra_model, deepcopy_model=deepcopy_model)
