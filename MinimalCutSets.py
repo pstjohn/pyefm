@@ -270,3 +270,4 @@ if __name__ == "__main__":
     bad = out[out['R4'] > 0]
 
     cutsets = calculate_minimum_cut_sets(good, bad, 2, verbose=False)
+    print(cutsets)
