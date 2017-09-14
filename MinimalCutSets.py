@@ -13,7 +13,7 @@ and distribute better wrapper)
 
 import os
 import pandas as pd
-from .utils import run_process, make_temp_directory, opt_gen
+from pyefm.utils import run_process, make_temp_directory, opt_gen
 
 mcs_lib_dir = os.path.dirname(os.path.abspath(__file__)) + '/mhsCalculator'
 mcs_convert_cmd = mcs_lib_dir + '/convert_text_to_bin'
