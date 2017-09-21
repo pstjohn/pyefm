@@ -109,6 +109,7 @@ class EFMToolWrapper(object):
                 'normalize': 'max',
                 'adjacency-method': 'pattern-tree-minzero',
                 'rowordering': 'MostZerosOrAbsLexMin',
+                'tmpdir': temp_dir
             }
 
             default_opts.update(self.opts)
