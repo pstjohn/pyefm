@@ -30,9 +30,9 @@ class EFVWrapper(EFMToolWrapper):
         h_full = np.array([(r.lower_bound, -r.upper_bound)
                            for r in self.model.reactions]).T.flatten()
 
-        # inhomogeneous = ~((h_full <= -1000) | np.isclose(h_full, 0))
-        # h = h_full[inhomogeneous]
-        # G = g_full[inhomogeneous]
+        inhomogeneous = ~((h_full <= -1000) | np.isclose(h_full, 0))
+        h_full = h_full[inhomogeneous]
+        g_full = g_full[inhomogeneous]
 
         if extra_g is not None:
             assert extra_g.shape[1] == nr
