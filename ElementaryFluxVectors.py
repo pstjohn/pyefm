@@ -57,11 +57,11 @@ class EFVWrapper(EFMToolWrapper):
         np.savetxt(temp_dir + '/stoich.txt', self.D, delimiter='\t')
 
         # Reaction reversibilities
-        np.savetxt(temp_dir + '/revs.txt',
-                   np.hstack([
-                    np.array([r.lower_bound < 0 for r in self.model.reactions]),
-                    np.zeros((self.nt + 1))]),
-                   delimiter='\t', fmt='%d', newline='\t')
+        np.savetxt(
+            temp_dir + '/revs.txt', np.hstack([
+                np.array([r.lower_bound < 0 for r in self.model.reactions]),
+                np.zeros((self.nt + 1))]),
+            delimiter='\t', fmt='%d', newline='\t')
 
         # Reaction Names
         r_names = np.hstack([
@@ -114,13 +114,17 @@ class EFVWrapper(EFMToolWrapper):
  
 
 def calculate_elementary_vectors(cobra_model, opts=None, verbose=True,
-                                 extra_g=None, extra_h=None):
+                                 java_args=None, extra_g=None, extra_h=None):
     """Calculate elementary flux vectors, which capture arbitrary linear
     constraints. Approach as detailed in S. Klamt et al., PLoS Comput Biol. 13,
     e1005409–22 (2017).
 
     Augmented constraints as a hacky workaround for implementing more
     complicated constraints without using optlang.
+
+    java_args: string
+        Extra command-line options to pass to the java virtual machine.
+        Eg. '-Xmx1g' will set the heap space to 1 GB.
     
     extra_g: (n x nr) array
         Extra entries in the constraint matrix. postive values for lower

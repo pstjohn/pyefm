@@ -18,13 +18,10 @@ except ImportError:
 
 from pyefm.utils import make_temp_directory, run_process
 
-efm_lib_dir = os.path.dirname(os.path.abspath(__file__)) + '/efmtool'
-efm_command = ['java', '-jar', efm_lib_dir + '/metabolic-efm-all.jar']
-
 
 class EFMToolWrapper(object):
 
-    def __init__(self, cobra_model, opts=None, verbose=True):
+    def __init__(self, cobra_model, opts=None, verbose=True, java_args=None):
 
         if opts is None:
             opts = {}
@@ -32,6 +29,15 @@ class EFMToolWrapper(object):
         self.opts = opts
         self.model = cobra_model
         self.verbose = verbose
+
+        self.efm_lib_dir = (os.path.dirname(os.path.abspath(__file__)) + 
+                            '/efmtool')
+        self.efm_command = ['java', '-jar', self.efm_lib_dir +
+                            '/metabolic-efm-all.jar']
+
+        # Insert a string with extra options to the java virtual machine.
+        if java_args:
+            self.efm_command.insert(1, java_args)
 
 
     def create_model_files(self, temp_dir):
@@ -126,7 +132,7 @@ class EFMToolWrapper(object):
                         yield out_file
 
             # Run the EFMtool, outputting STDOUT to python.
-            run_process(efm_command + list(opt_gen()), verbose=self.verbose)
+            run_process(self.efm_command + list(opt_gen()), verbose=self.verbose)
 
             if 'binary-doubles' in default_opts['out']:
                 return self.read_double_out(out_file)
@@ -135,8 +141,8 @@ class EFMToolWrapper(object):
                 raise RuntimeError('Other output options not supported')
 
 
-
-def calculate_elementary_modes(cobra_model, opts=None, verbose=True):
+def calculate_elementary_modes(cobra_model, opts=None, verbose=True,
+                               java_args=None):
     """ A python wrapper around EFMTool, a java-based library for calculating
     elementary flux modes.
 
@@ -153,6 +159,10 @@ def calculate_elementary_modes(cobra_model, opts=None, verbose=True):
 
     verbose: bool
         Whether or not to redirect stdout to the python shell.
+
+    java_args: string
+        Extra command-line options to pass to the java virtual machine.
+        Eg. '-Xmx1g' will set the heap space to 1 GB.
 
 
     Option Descriptions from the MATLAB Documentation:
@@ -392,6 +402,7 @@ if __name__ == "__main__":
     model.reactions.R9.build_reaction_from_string('B --> P')
     model.reactions.R10.build_reaction_from_string('C + D --> E + P')
 
-    out = calculate_elementary_modes(model, verbose=False)
+    out = calculate_elementary_modes(model, verbose=True,
+                                     java_args='-Xmx1g')
 
     print(out)
