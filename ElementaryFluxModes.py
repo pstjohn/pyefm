@@ -356,7 +356,7 @@ def calculate_elementary_modes(cobra_model, opts=None, verbose=True,
 
     """
 
-    return EFMToolWrapper(cobra_model, opts, verbose)()
+    return EFMToolWrapper(cobra_model, opts, verbose, java_args=java_args)()
 
 
 if __name__ == "__main__":

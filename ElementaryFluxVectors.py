@@ -133,7 +133,7 @@ def calculate_elementary_vectors(cobra_model, opts=None, verbose=True,
         Corresponding bounds for the extra entries matrix
 
     """
-    efv_wrap =  EFVWrapper(cobra_model, opts, verbose)
+    efv_wrap =  EFVWrapper(cobra_model, opts, verbose, java_args=java_args)
     efv_wrap.create_matrices(extra_g=extra_g, extra_h=extra_h)
     return efv_wrap()
     
