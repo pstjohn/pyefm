@@ -7,11 +7,13 @@ import sys
 
 
 @contextlib.contextmanager
-def make_temp_directory(prefix=None):
+def make_temp_directory(prefix=None, dir_=None):
     """ Create a temporary working directory for efmtool input and output files
 
     """
-    temp_dir = tempfile.mkdtemp(prefix=prefix + '_tmp', dir='.')
+    if dir_ is None:
+        dir_ = '.'
+    temp_dir = tempfile.mkdtemp(prefix=prefix + '_tmp', dir=dir_)
     try:
         yield temp_dir
     finally:

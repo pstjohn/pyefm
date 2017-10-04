@@ -87,7 +87,10 @@ class EFMToolWrapper(object):
 
 
     def __call__(self):
-        with make_temp_directory('efmtool') as temp_dir:
+
+        dir_ = self.opts.pop('dir_', None)
+
+        with make_temp_directory('efmtool', dir_) as temp_dir:
 
             self.create_model_files(temp_dir)
 
