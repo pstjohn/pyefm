@@ -406,6 +406,6 @@ if __name__ == "__main__":
     model.reactions.R10.build_reaction_from_string('C + D --> E + P')
 
     out = calculate_elementary_modes(model, verbose=True,
-                                     java_args='-Xmx1G')
+                                     java_args='-Xmx1G', opts={'dir_': 'test'})
 
     print(out)
