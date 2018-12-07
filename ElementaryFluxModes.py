@@ -6,6 +6,7 @@ with bit pattern trees. Bioinformatics 24: 2229-2235.
 """
 
 import os
+from cobra.util import create_stoichiometric_matrix
 
 import numpy as np
 
@@ -15,67 +16,138 @@ try:
 except ImportError:
     pandas = False
 
-#
-from .utils import make_temp_directory, run_process
 
-efm_lib_dir = os.path.dirname(os.path.abspath(__file__)) + '/efmtool'
-efm_command = ['java', '-jar', efm_lib_dir + '/metabolic-efm-all.jar']
+from pyefm.utils import make_temp_directory, run_process
 
 
-def create_model_files(cobra_model, temp_dir, deepcopy_model=True):
-    """ Write stochiometry data, reaction reversibilities, metabolite, and
-    reaction names to temporary files in preparation for calling efmtool
 
-    """
+class EFMToolWrapper(object):
 
-    try:
-        import cobra
-        stoich_mat = cobra.util.create_stoichiometric_matrix(cobra_model)
-    except AttributeError:
-        from cobra.core.arraybasedmodel import ArrayBasedModel
-        cobra_model = ArrayBasedModel(
-            cobra_model, deepcopy_model=deepcopy_model)
-        stoich_mat = cobra_model.S.toarray()
+    def __init__(self, cobra_model, opts=None, verbose=True, java_args=None):
 
-    # Stoichiometric Matrix
-    np.savetxt(temp_dir + '/stoich.txt', stoich_mat, delimiter='\t')
+        if opts is None:
+            opts = {}
 
-    # Reaction reversibilities
-    np.savetxt(temp_dir + '/revs.txt',
-               np.array([r.reversibility for r in cobra_model.reactions]),
-               delimiter='\t', fmt='%d', newline='\t')
+        self.opts = opts
+        self.model = cobra_model
+        self.verbose = verbose
 
-    # Reaction Names
-    with open(temp_dir + '/rnames.txt', 'w') as f:
-        f.write('\t'.join(('"{}"'.format(r.id)
-                           for r in cobra_model.reactions)))
+        self.efm_lib_dir = (os.path.dirname(os.path.abspath(__file__)) + 
+                            '/efmtool')
+        self.efm_command = ['java', '-jar', self.efm_lib_dir +
+                            '/metabolic-efm-all.jar']
 
-    # Metabolite Names
-    with open(temp_dir + '/mnames.txt', 'w') as f:
-        f.write('\t'.join(('"{}"'.format(m.id)
-                           for m in cobra_model.metabolites)))
+        # Insert a string with extra options to the java virtual machine.
+        if java_args:
+            self.efm_command.insert(1, java_args)
 
 
-def read_double_out(cobra_model, out_file):
-    """ Read the output file generated from EMFTool. Returns a numpy array or
-    pandas dataframe (if pandas can be loaded)
+    def create_model_files(self, temp_dir):
+        """ Write stochiometry data, reaction reversibilities, metabolite, and
+        reaction names to temporary files in preparation for calling efmtool
 
-    """
-    with open(out_file, 'rb') as f:
-        out_arr = np.fromstring(f.read()[13:], dtype='>d').reshape(
-            (-1, len(cobra_model.reactions))).T
-        out_arr = np.array(out_arr, dtype=np.float64)
+        """
 
-    if pandas:
-        out_arr = pd.DataFrame(
-            out_arr, index=(r.id for r in cobra_model.reactions),
-            columns=('EM{}'.format(i) for i in
-                     range(1, out_arr.shape[1] + 1)))
+        stoich_mat = create_stoichiometric_matrix(self.model)
 
-    return out_arr
+        # Stoichiometric Matrix
+        np.savetxt(temp_dir + '/stoich.txt', stoich_mat, delimiter='\t')
+
+        # Reaction reversibilities
+        np.savetxt(temp_dir + '/revs.txt',
+                   np.array([r.reversibility for r in self.model.reactions]),
+                   delimiter='\t', fmt='%d', newline='\t')
+
+        # Reaction Names
+        with open(temp_dir + '/rnames.txt', 'w') as f:
+            f.write('\t'.join(('"{}"'.format(r.id)
+                               for r in self.model.reactions)))
+
+        # Metabolite Names
+        with open(temp_dir + '/mnames.txt', 'w') as f:
+            f.write('\t'.join(('"{}"'.format(m.id)
+                               for m in self.model.metabolites)))
 
 
-def calculate_elementary_modes(cobra_model, opts=None, verbose=True):
+    def read_double_out(self, out_file):
+        """ Read the output file generated from EMFTool. Returns a numpy array or
+        pandas dataframe (if pandas can be loaded)
+
+        """
+        with open(out_file, 'rb') as f:
+            out_arr = np.fromstring(f.read()[13:], dtype='>d').reshape(
+                (-1, len(self.model.reactions))).T
+            out_arr = np.array(out_arr, dtype=np.float64)
+
+        if pandas:
+            out_arr = pd.DataFrame(
+                out_arr, index=(r.id for r in self.model.reactions),
+                columns=('EM{}'.format(i) for i in
+                         range(1, out_arr.shape[1] + 1)))
+
+        return out_arr.T
+
+
+    def __call__(self):
+
+        dir_ = self.opts.pop('dir_', None)
+
+        with make_temp_directory('efmtool', dir_) as temp_dir:
+
+            self.create_model_files(temp_dir)
+
+            try:
+                out_file = self.opts.pop('out_file')
+            except KeyError:
+                out_file = temp_dir + '/out.bin'
+
+            # Default options for the EMFtool. I don't recommend changing any
+            # of these, even though the function is set up for this. This tool
+            # hasn't been tested for any options other than these
+            default_opts = {
+                'kind': 'stoichiometry',
+                'stoich': temp_dir + '/stoich.txt',
+                'rev': temp_dir + '/revs.txt',
+                'reac': temp_dir + '/rnames.txt',
+                'meta': temp_dir + '/mnames.txt',
+                'arithmetic': 'double',
+                'zero': 1E-10,
+                'out': 'binary-doubles',  # TODO support binary output?
+                'compression': 'default',
+                'log': 'console',
+                'level': 'INFO',
+                'maxthreads': -1,
+                'normalize': 'max',
+                'adjacency-method': 'pattern-tree-minzero',
+                'rowordering': 'MostZerosOrAbsLexMin',
+                'tmpdir': temp_dir
+            }
+
+            default_opts.update(self.opts)
+
+            # Create a list of arguments to pass to the python subprocess
+            # module
+            def opt_gen():
+                for opt, val in default_opts.items():
+                    yield '-' + opt
+                    yield str(val)
+
+                    # This kw takes two arguments
+                    if opt == 'out':
+                        yield out_file
+
+            # Run the EFMtool, outputting STDOUT to python.
+            run_process(self.efm_command + list(opt_gen()), verbose=self.verbose)
+
+            if 'binary-doubles' in default_opts['out']:
+                return self.read_double_out(out_file)
+
+            else:
+                raise RuntimeError('Other output options not supported')
+
+
+def calculate_elementary_modes(cobra_model, opts=None, verbose=True,
+                               java_args=None):
     """ A python wrapper around EFMTool, a java-based library for calculating
     elementary flux modes.
 
@@ -92,6 +164,10 @@ def calculate_elementary_modes(cobra_model, opts=None, verbose=True):
 
     verbose: bool
         Whether or not to redirect stdout to the python shell.
+
+    java_args: string
+        Extra command-line options to pass to the java virtual machine.
+        Eg. '-Xmx1g' will set the heap space to 1 GB.
 
 
     Option Descriptions from the MATLAB Documentation:
@@ -285,59 +361,7 @@ def calculate_elementary_modes(cobra_model, opts=None, verbose=True):
 
     """
 
-    if opts is None:
-        opts = {}
-
-    with make_temp_directory('efmtool') as temp_dir:
-
-        create_model_files(cobra_model, temp_dir)
-
-        try:
-            out_file = opts.pop('out_file')
-        except KeyError:
-            out_file = temp_dir + '/out.bin'
-
-        # Default options for the EMFtool. I don't recommend changing any of
-        # these, even though the function is set up for this. This tool hasn't
-        # been tested for any options other than these
-        default_opts = {
-            'kind': 'stoichiometry',
-            'stoich': temp_dir + '/stoich.txt',
-            'rev': temp_dir + '/revs.txt',
-            'reac': temp_dir + '/rnames.txt',
-            'meta': temp_dir + '/mnames.txt',
-            'arithmetic': 'double',
-            'zero': 1E-10,
-            'out': 'binary-doubles',  # TODO support binary output?
-            'compression': 'default',
-            'log': 'console',
-            'level': 'INFO',
-            'maxthreads': -1,
-            'normalize': 'max',
-            'adjacency-method': 'pattern-tree-minzero',
-            'rowordering': 'MostZerosOrAbsLexMin',
-        }
-
-        default_opts.update(opts)
-
-        # Create a list of arguments to pass to the python subprocess module
-        def opt_gen():
-            for opt, val in default_opts.items():
-                yield '-' + opt
-                yield str(val)
-
-                # This kw takes two arguments
-                if opt == 'out':
-                    yield out_file
-
-        # Run the EFMtool, outputting STDOUT to python.
-        run_process(efm_command + list(opt_gen()), verbose=verbose)
-
-        if 'binary-doubles' in default_opts['out']:
-            out_arr = read_double_out(cobra_model, out_file)
-
-        # I prefer to have model reactions as columns.
-        return out_arr.T
+    return EFMToolWrapper(cobra_model, opts, verbose, java_args=java_args)()
 
 
 if __name__ == "__main__":
@@ -383,6 +407,7 @@ if __name__ == "__main__":
     model.reactions.R9.build_reaction_from_string('B --> P')
     model.reactions.R10.build_reaction_from_string('C + D --> E + P')
 
-    out = calculate_elementary_modes(model, verbose=False)
+    out = calculate_elementary_modes(model, verbose=True,
+                                     java_args='-Xmx1G', opts={'dir_': 'test'})
 
     print(out)

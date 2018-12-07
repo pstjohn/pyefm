@@ -5,19 +5,17 @@ import subprocess
 import os
 import sys
 
-from warnings import warn
-
 
 @contextlib.contextmanager
-def make_temp_directory(prefix=None):
+def make_temp_directory(prefix=None, dir_=None):
     """ Create a temporary working directory for efmtool input and output files
 
     """
-    temp_dir = tempfile.mkdtemp(prefix=prefix + '_tmp', dir='.')
+    if dir_ is None:
+        dir_ = '.'
+    temp_dir = tempfile.mkdtemp(prefix=prefix + '_tmp', dir=dir_)
     try:
         yield temp_dir
-    except Exception as e:
-        warn(str(e))
     finally:
         shutil.rmtree(temp_dir)
 
@@ -42,6 +40,11 @@ def run_process(process, verbose=True):
             sys.stdout.write(line.decode("utf-8"))
             sys.stdout.flush()
         process.stdout.close()
+
+        for line in iter(process.stderr.readline, b''):
+            sys.stderr.write(line.decode("utf-8"))
+            sys.stderr.flush()
+        process.stderr.close()
     process.wait()
 
 

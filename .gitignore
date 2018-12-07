@@ -90,3 +90,15 @@ ENV/
 
 mhsCalculator/convert_text_to_bin
 mhsCalculator/mhsCalculator_berge
+
+*.sw[op]
+
+*.o
+mhsCalculator/mhsCalculator_berge
+mhsCalculator/mhsCalculator_linprog_glpk
+mhsCalculator/mhsCalculator_bruteforce
+mhsCalculator/start_autoconf
+
+mhsCalculator/Makefile
+mhsCalculator/config.status
+mhsCalculator/convert_text_to_bin.dSYM/
