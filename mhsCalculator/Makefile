@@ -5,12 +5,12 @@
 # Company: Austrian Centre of Industrial Biotechnology (ACIB)
 ################################################################################
 
-CC         = @CC@
-TARGET     = @TARGET@
+CC         = gcc
+TARGET     = mhsCalculator_linprog_gurobi mhsCalculator_linprog_glpk
 
-# CC_OPTS = -g -O0 @CFLAGS@
-CC_OPTS = -O3 -Wall @CFLAGS@
-LD_OPTS = @LDFLAGS@
+# CC_OPTS = -g -O0 -I/Library/gurobi751/mac64/include
+CC_OPTS = -O3 -Wall -I/Library/gurobi751/mac64/include
+LD_OPTS = -L/Library/gurobi751/mac64/lib
 
 
 GURBOI_LIB = -lgurobi75 -lm -lpthread

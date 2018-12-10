@@ -16,7 +16,9 @@ try:
 except ImportError:
     pandas = False
 
+
 from pyefm.utils import make_temp_directory, run_process
+
 
 
 class EFMToolWrapper(object):

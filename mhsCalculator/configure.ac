@@ -46,7 +46,7 @@ AC_CHECK_LIB([cplex],[CPXopenCPLEX], [LIBCPLEX=true], [LIBCPLEX=false], [-lpthre
 
 echo "Testing if GUROBI is installed"
 AC_CHECK_HEADERS(gurobi_c.h)
-AC_CHECK_LIB([gurobi55],[GRBloadenv], [LIBGUROBI=true], [LIBGUROBI=false], [-lpthread -lm])
+AC_CHECK_LIB([gurobi75],[GRBloadenv], [LIBGUROBI=true], [LIBGUROBI=false], [-lpthread -lm])
 
 ###############################################################################
 # check if we can build executable that uses GLPK
@@ -104,7 +104,7 @@ fi
 if test "$LIBGUROBI" == false
 then
         BUILD_GUROBI_EXEC=no
-	AC_MSG_WARN([GUROBI library 'libgurobi55' is missing!]);
+	AC_MSG_WARN([GUROBI library 'libgurobi75' is missing!]);
 fi
 ###############################################################################
 

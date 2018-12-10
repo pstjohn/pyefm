@@ -43,8 +43,10 @@ CPLEX_LIB_DIR=-L/opt/ibm/ILOG/CPLEX_Studio125/cplex/lib/x86-64_sles10_4.1/static
 ###############################################################################
 # directories for GUROBI
 ###############################################################################
-GUROBI_INC_DIR=-I/opt/gurobi/gurobi550/linux64/include
-GUROBI_LIB_DIR=-L/opt/gurobi/gurobi550/linux64/lib
+#GUROBI_INC_DIR=-I/opt/gurobi/gurobi550/linux64/include
+GUROBI_INC_DIR=-I/Library/gurobi751/mac64/include
+#GUROBI_LIB_DIR=-L/opt/gurobi/gurobi550/linux64/lib
+GUROBI_LIB_DIR=-L/Library/gurobi751/mac64/lib
 ###############################################################################
 
 ./configure CFLAGS="$CPLEX_INC_DIR $GUROBI_INC_DIR" LDFLAGS="$CPLEX_LIB_DIR $GUROBI_LIB_DIR"
