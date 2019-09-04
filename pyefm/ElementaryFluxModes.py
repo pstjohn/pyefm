@@ -73,7 +73,7 @@ class EFMToolWrapper(object):
 
         """
         with open(out_file, 'rb') as f:
-            out_arr = np.fromstring(f.read()[13:], dtype='>d').reshape(
+            out_arr = np.frombuffer(f.read()[13:], dtype='>d').reshape(
                 (-1, len(self.model.reactions))).T
             out_arr = np.array(out_arr, dtype=np.float64)
 
